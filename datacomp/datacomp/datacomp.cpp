@@ -8,7 +8,7 @@
 using namespace std;
 
 const int dictsize = 9;
-string dictionary = "AAAAAAAA";
+string dictionary = "AAACAAAA";
 string text = "ABRACADABRADABRACAB";
 string textcpy = "ABRACADABRADABRACAB";
 string lookahead;
@@ -17,18 +17,19 @@ vector <string> compressed;
 
 void substrings(string str) {
 	for (int i = 0; i <= str.length(); i++) {
-		string s1 = str.substr(0, i); //get a substring of s from position with length j
+		string s1 = str.substr(0, i); //get a substring of s from from the start to index i
 		subsets.push_back(s1);
 	}
 	for (int i = 1;i < subsets.size();i++) {
-		subsets[i - 1] = subsets[i];
+		subsets[i - 1] = subsets[i]; //since there's an empty space at the start shift all values left
 	}
-	subsets.erase(subsets.begin() + 4);
+	subsets.erase(subsets.begin() + 4);//delete last entry because now it is empty
 }
 
 void compress() {
 	lookahead = textcpy.substr(textcpy.length() - 4);
 	substrings(lookahead);
+	string output="(";
 	int maxlen = 0;
 	int maxidx = -1;
 	for (int i = 0; i < subsets.size(); i++) {
@@ -41,15 +42,41 @@ void compress() {
 				maxidx = index;
 			}
 			cout << "index of found: " << 7-index << " length of found: " << subsets[i].length() << endl;
+			
 		}
 	}
 	
 	if (maxlen > 0) {//if match is found
 		maxidx = 7 - maxidx;//reverse index since indexing in example is right to left
-		cout << "(0," << maxidx << ","<< maxlen << ")" << endl; //output the compression
+		output += "0,";
+		output += to_string(maxidx);
+		output += ",";
+		output += to_string(maxlen);
+		output += ")";
+		cout << output << endl;
+		compressed.push_back(output);
+
+		for (int i = 1;i <= maxlen;i++) {//shift the dictionary to the left by the length amount
+			for (int i = 1;i < dictionary.length();i++) {
+				dictionary[i - 1] = dictionary[i]; //since there's an empty space at the start shift all values left
+			}	
+			dictionary.erase(8-maxlen,maxlen);//remove as many ending characters as length of match
+			dictionary.append(lookahead,0,maxlen);
+		}
+
 	}
 	else {
-		cout << "(1," << subsets[0] << ")" << endl; //if no match then cout new char
+		output += "1,";
+		output += subsets[0];
+		output += ")";
+		cout << output << endl; //if no match then cout new char
+		compressed.push_back(output);
+
+		for (int i = 1;i < dictionary.length();i++) {
+			dictionary[i - 1] = dictionary[i]; //since there's an empty space at the start shift all values left
+		}
+		dictionary.erase(7);//remove last character
+		dictionary.append(lookahead, 0, 1); //add the new char
 	}
 }
 
@@ -57,21 +84,9 @@ void compress() {
 int main(void)
 {
 	
+	cout << "dicc: " << dictionary << endl;
 	compress();
-
-
-	cout << "subsets size: " << subsets.size() << endl;
-	//for (int i = 0; i < 9; i++) {
-	//cout << dictionary[i] << endl;
-	//}
-	//
-	//for (int o = 0; o < 9; o++) {
-	//	dictionary[o] = dictionary[o+1];
-	//}
-
-	//for (int p = 0; p < 9; p++) {
-	//	cout << dictionary[p] << endl;
-	//}
+	cout << "dicc: " << dictionary << endl;
 
 	system("pause");
 	return 0;
